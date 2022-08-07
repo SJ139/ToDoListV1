@@ -32,6 +32,13 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
+const listSchema = {
+  name: String,
+  items: [itemsSchema]
+};
+
+const List = mongoose.model("List", listSchema);
+
 app.get("/", function(req, res) {
 
 Item.find({}, function(err, foundItems){
@@ -48,6 +55,19 @@ Item.find({}, function(err, foundItems){
     res.render("list", {listTitle: "Today", newListItems: foundItems});
   }
 });
+
+//create dynamic directories
+
+app.get("/:customListName", function(req,res){
+const customListName = req.params.customListName;
+
+const list = new List({
+  name:customListName,
+  items: defaultItems
+})
+list.save();
+
+})
 
 });
 
