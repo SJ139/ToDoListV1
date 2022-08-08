@@ -61,11 +61,21 @@ Item.find({}, function(err, foundItems){
 app.get("/:customListName", function(req,res){
 const customListName = req.params.customListName;
 
-const list = new List({
-  name:customListName,
-  items: defaultItems
-})
-list.save();
+List.findOne({name: customListName}, function(err, foundList){
+  if(!err){
+    if(!foundList){
+      const list = new List({
+        name:customListName,
+        items: defaultItems
+      })
+      list.save();
+      res.redirect("/" + customListName);
+    }else{
+      res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
+      }
+    }
+});
+
 
 })
 
@@ -74,18 +84,41 @@ list.save();
 app.post("/", function(req, res){
 
   const itemName = req.body.newItem;
+  const listName = req.body.list;
+
   const item = new Item({
     name: itemName
   })
 
-  item.save();
-  res.redirect("/");
-
+  if (listName === "Today"){
+    item.save();
+    res.redirect("/");
+  }else{
+    List.findOne({name:listName}, function (error, foundList){
+      foundList.items.push(item);
+      foundList.save();
+      res.redirect("/" + listName);
+    });
+  }
 });
 
 //deletes any items that are checked off in the todolist
 app.post("/delete", function(req,res){
   const checkedItemId = req.body.checkbox;
+  const listName = req.body.listName;
+
+  if (listName === "Today"){
+    Item.findByIdAndRemove(checkedItemId,function(err){
+      if (!err)
+        console.log("Item Succesfully Deleted");
+        res.redirect("/");
+    });
+  }else {
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}},function(err,foundList))
+    if(!err){
+      res.redirect("/" + listName);
+    });
+  }
 
   Item.findByIdAndRemove(checkedItemId,function(err){
     if (!err)
