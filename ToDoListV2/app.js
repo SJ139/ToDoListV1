@@ -107,18 +107,21 @@ app.post("/delete", function(req,res){
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
 
-  if (listName === "Today"){
+  if (listName === "Today") {
     Item.findByIdAndRemove(checkedItemId,function(err){
-      if (!err)
+      if (!err){
         console.log("Item Succesfully Deleted");
         res.redirect("/");
+      }
     });
   }else {
-    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}},function(err,foundList))
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err,foundList){
     if(!err){
       res.redirect("/" + listName);
-    });
-  }
+
+    };
+)};
+
 
   Item.findByIdAndRemove(checkedItemId,function(err){
     if (!err)
